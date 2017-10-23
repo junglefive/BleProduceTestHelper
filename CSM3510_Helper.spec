@@ -4,7 +4,7 @@ block_cipher = None
 
 
 a = Analysis(['CSM3510_Helper.py'],
-             pathex=['C:\\Python\\Python35-32\\Lib\\site-packages\\PyQt5\\Qt\\bin', 'C:\\Users\\admin\\Documents\\junglefive\\github\\SerialPortTools\\CSM3510_Helper'],
+             pathex=['C:\\Python\\Python35-32\\Lib\\site-packages\\PyQt5\\Qt\\bin', 'F:\\Workspace\\GitHub\\BleProduceTestHelper'],
              binaries=[],
              datas=[],
              hiddenimports=[],
@@ -25,4 +25,5 @@ exe = EXE(pyz,
           debug=False,
           strip=False,
           upx=True,
-          console=True )
+          runtime_tmpdir=None,
+          console=False , icon='110.ico')

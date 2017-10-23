@@ -6,10 +6,13 @@ from PyQt5.QtGui import *
 from PyQt5.QtPrintSupport import QPrinter, QPrintDialog, QPrinterInfo
 from PyQt5.QtWidgets import *
 from serial.tools.list_ports import *
-
+import shutil
 import qr_code
 from chipsea_tools import *
 from main_window_ui import *
+
+import sqlite3 as lite
+import xlwt
 
 
 class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
@@ -27,6 +30,8 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
         self.resize(qRect.width() / 3, qRect.height() *2/3 )
         self.move(qRect.width() / 3, qRect.height()/30)
         #initiate
+        self.btn_export_excle.clicked.connect(self.export_excle_table)
+        self.btn_save_log.clicked.connect(self.save_log)
         self.btn_reset_result.clicked.connect(self.reset_button_clicked)
         self.btn_csm3510_setting.clicked.connect(self.csm3510_btn_setting_clicked)
         self.btn_cc2640_setting.clicked.connect(self.cc2640_btn_setting_clicked)
@@ -46,6 +51,7 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
         self.csm_helper.sin_dis_str.connect(self.sin_dis_str_call)
         self.csm_helper.sin_log_str.connect(self.sin_log_str_call)
         self.csm_helper.sin_result_int.connect(self.sin_result_int_call)
+
         #else
         self.textBrowser_help.setSource(QUrl("./resource/help.html"))
         self.textBrowser_result.setSource(QUrl("./resource/waitting.html"))
@@ -77,7 +83,57 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
         printerInfo = QPrinterInfo()
         self.set_green_text(self.printer_head_text)
         self.printer_name.setText("当前默认打印机:"+printerInfo.defaultPrinterName())
+        # 生成管理文件夹
+        self.dir_output = "./output"
+        self.gen_dir_if_not_exits(self.dir_output)
+        self.dir_excle  = "./excle"
+        self.gen_dir_if_not_exits(self.dir_excle)
+        self.dir_resource = "./resource"
+        self.gen_dir_if_not_exits(self.dir_resource)
 
+    def gen_dir_if_not_exits(self, cur_dir):
+
+        flag = os.path.exists(cur_dir)
+        if flag == False:
+            os.mkdir(cur_dir)
+
+    def export_excle_table(self):
+
+        pass
+        list = [" "]
+        self.gen_xls(list)
+        print("导出excle表格")
+        QMessageBox.information(self, "提示", "导出Excle成功，请到当前目录查看", QMessageBox.Yes)
+
+    def gen_xls(self,list):
+
+        time_stamp = datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
+        workbook = xlwt.Workbook(encoding='utf-8')
+        worksheet = workbook.add_sheet("chipsea")
+        worksheet.write(0,0,"时间");worksheet.write(0,1,"MAC地址");
+        i = 0;
+        # for mac,time in dic.items():
+        #     i = i+1;
+        #     print(time, mac)
+        #     worksheet.write(i,0,time);worksheet.write(i,1,mac);
+        # 保存xls
+        workbook.save(self.dir_excle+"/%s-chipsea.xls"%(time_stamp))
+
+    def save_log(self):
+        time_stamp = datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
+        result = os.path.exists("./output/log")
+        print(result)
+        if result == False:
+            os.mkdir("./output/log")
+        # 复制文件
+        flag = os.path.exists("./output/chipsea_csm3510.db")
+        if flag == True:
+            shutil.copyfile("./output/chipsea_csm3510.db","./output/log/%s_csm3510_data.db"%(time_stamp))
+            os.remove("./output/chipsea_csm3510.db")
+            QMessageBox.information(self, "提示", "存档成功，请重新开始测试", QMessageBox.Yes)
+        else:
+            QMessageBox.information(self, "提示", "记录不存在，请先测试", QMessageBox.Yes)
+        print("将当前记录存档")
 
     def set_green_text(self, comp):
         palette = QPalette()
@@ -363,8 +419,11 @@ class CSM3510_Helper(QThread):
                  if self.csm3510.is_available==True and self.currenter.is_available == True:
                      self.check_current()
                      result, cur = self.get_current()
+                     info = "nothing"
+                     message = "nothing"
                      if result == True and abs(cur) > 3.0:
                          print("当前电流:" + str(result) + "->" + str(cur))
+                         self.poweron_current = cur
                          result = self.check_csm3510_state()
                          if result == True:
                              if self.had_test_flag == False:
@@ -385,8 +444,9 @@ class CSM3510_Helper(QThread):
                                     self.print_dis("03. 发送MAC地址给测试架:" + str(result)+ "->" + str(info));
                                 if result == True:
                                     # 4 发送命令获取广播的RSSI
-                                    result, info = self.cc2640.send_command(self.cc2640.cmd_get_adv_rssi, timeout = 1)
-                                    self.print_dis("04. 获取广播RSSI:" + str(result)+ "->" + str(info));
+                                    result, rssi = self.cc2640.send_command(self.cc2640.cmd_get_adv_rssi, timeout = 1)
+                                    self.print_dis("04. 获取广播RSSI:" + str(result)+ "->" + str(rssi));
+                                    self.adv_rssi = rssi
                                 if result == True:
                                     # 5 设置广播通道为adv_37
                                     result = self.csm3510.send_command(self.csm3510.cmd_set_adv_37)
@@ -395,6 +455,7 @@ class CSM3510_Helper(QThread):
                                     # 6 获取当前广播内容
                                     result, info = self.cc2640.send_command(self.cc2640.cmd_get_adv_data, timeout = 1)
                                     self.print_dis("06. 接收广播通道37:" + str(result)+ "->" + str(info));
+                                    self.adv_37 = info
                                 if result == True:
                                     # 7设置广播通道为adv_38
                                     result = self.csm3510.send_command(self.csm3510.cmd_set_adv_38)
@@ -403,6 +464,7 @@ class CSM3510_Helper(QThread):
                                     # 8 读取广播通道38的内容
                                     result, info = self.cc2640.send_command(self.cc2640.cmd_get_adv_data, timeout = 1)
                                     self.print_dis("08. 接收广播通道38:" + str(result)+ "->" + str(info));
+                                    self.adv_38 = info
                                 if result == True:
                                     # 9 设置广播通道adv_39
                                     result = self.csm3510.send_command(self.csm3510.cmd_set_adv_39)
@@ -411,6 +473,7 @@ class CSM3510_Helper(QThread):
                                     # 10 获取广播通道39内容
                                     result, info = self.cc2640.send_command(self.cc2640.cmd_get_adv_data, timeout = 1)
                                     self.print_dis("10. 发送广播通道39:" + str(result)+ "->" + str(info));
+                                    self.adv_39 = info
                                 if result == True:
                                     # 11 设置广播通道到默认
                                     result = self.csm3510.send_command(self.csm3510.cmd_set_adv_default)
@@ -419,6 +482,7 @@ class CSM3510_Helper(QThread):
                                     # 12 读取此时广播电流
                                     result, cur = self.get_current()
                                     self.print_dis("12. 读取广播电流:" + str(result)+ "->" + str(info));
+                                    self.adv_current = cur
                                 if result == True:
                                     # 13 要求cc2640连接上csm3510
                                     result, info = self.cc2640.send_command(self.cc2640.cmd_connect, timeout = 5)
@@ -435,6 +499,7 @@ class CSM3510_Helper(QThread):
                                     # 16 接收透传notify数据
                                     result, info = self.cc2640.send_command(self.cc2640.cmd_get_notify)
                                     self.print_dis("16. 接收Notify数据:" + str(result)+ "->" + str(info));
+                                    # self.csm
                                 if result == True:
                                     # 17 接收notify数据
                                     result, info = self.cc2640.send_command(self.cc2640.cmd_get_notify)
@@ -448,6 +513,7 @@ class CSM3510_Helper(QThread):
                                     # 19 读取当前连接电流
                                     result, cur = self.get_current()
                                     self.print_dis("19. 读取连接电流:" + str(result)+ "->" + str(cur));
+                                    self.connected_current = cur
                                 if result == True:
                                     # 20 要求断开连接
                                     result , info = self.cc2640.send_command(self.cc2640.cmd_disconnect, timeout = 1)
@@ -461,10 +527,12 @@ class CSM3510_Helper(QThread):
                                     time.sleep(0.2)
                                     result, cur = self.get_current()
                                     self.print_dis("22. 读取睡眠电流:" + str(result)+ "->" + str(cur));
+                                    self.sleep_current = cur
                                 if result == True:
                                          pass
                                          # 23 测量完成
                                          self.had_test_flag = True
+                                         self.save_to_database(self.mac_address)
                                          # 保存到数据库
                                          self.print_result(self.test_PASS)
                                 else:
@@ -487,12 +555,27 @@ class CSM3510_Helper(QThread):
 
              else:
                  pass
-      def save_to_database(self,content_arry):
 
-        con = lite.connect('./output/chipsea_csm3510.db')
-        cur = con.cursor();
-        cur.execute("CREATE TABLE IF NOT EXISTS mac_address_table(cur_time TEXT, mac_address TEXT)")
-        cur.execute("CREATE TABLE IF NOT EXISTS mac_address_table_log(cur_time TEXT, mac_address TEXT)")
+      def save_to_database(self,content_arry):
+            #保存到数据库
+            time_stamp = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            con = lite.connect('./output/chipsea_csm3510.db')
+            cur = con.cursor();
+            # mac_address_table 存放去重的数据
+            cur.execute("CREATE TABLE IF NOT EXISTS mac_address_table(cur_time TEXT, mac_address TEXT)")
+            # mac_address_table_log存放不去重的log记录
+            cur.execute("CREATE TABLE IF NOT EXISTS mac_address_table_log(cur_time TEXT, mac_address TEXT)")
+            con.commit()
+            con.close()
+            #file write
+            file = open("./output/log.cs","a+")
+            file.write(time_stamp+", "+str(content_arry)+"\n");
+            file.close()
+            #print
+            try:
+                MyPrinter.print_img_info(content_arry)
+            except Exception as e:
+                print(str(e))
 
 
       def run_with_csm3510_and_currenter(self):
@@ -549,7 +632,7 @@ class CSM3510_Helper(QThread):
       def run_with_only_csm3510(self):
          ################################################
           # 只选择了CSM3510
-          if self.currenter_is_checked == False and self.cc2640_is_checked == False and self.printer_is_checked == False:
+          if self.currenter_is_checked == False and self.cc2640_is_checked == False:
               result = self.check_csm3510_state()
               if result == True:
                   if self.had_test_flag == False:

@@ -1,0 +1,31 @@
+missing module named posix - imported by os, F:\Workspace\GitHub\BleProduceTestHelper\CSM3510_Helper.py
+missing module named _posixsubprocess - imported by subprocess, F:\Workspace\GitHub\BleProduceTestHelper\CSM3510_Helper.py
+missing module named 'org.python' - imported by pickle, F:\Workspace\GitHub\BleProduceTestHelper\CSM3510_Helper.py, xml.sax
+missing module named ce - imported by os, F:\Workspace\GitHub\BleProduceTestHelper\CSM3510_Helper.py
+missing module named readline - imported by cmd, code, pdb, F:\Workspace\GitHub\BleProduceTestHelper\CSM3510_Helper.py
+excluded module named _frozen_importlib - imported by importlib, importlib.abc, F:\Workspace\GitHub\BleProduceTestHelper\CSM3510_Helper.py
+missing module named _frozen_importlib_external - imported by importlib._bootstrap, importlib, importlib.abc, F:\Workspace\GitHub\BleProduceTestHelper\CSM3510_Helper.py
+missing module named _winreg - imported by platform, F:\Workspace\GitHub\BleProduceTestHelper\CSM3510_Helper.py
+missing module named _scproxy - imported by urllib.request
+missing module named java - imported by platform, F:\Workspace\GitHub\BleProduceTestHelper\CSM3510_Helper.py
+missing module named 'java.lang' - imported by platform, F:\Workspace\GitHub\BleProduceTestHelper\CSM3510_Helper.py, xml.sax._exceptions
+missing module named vms_lib - imported by platform, F:\Workspace\GitHub\BleProduceTestHelper\CSM3510_Helper.py
+missing module named termios - imported by tty, serial.serialposix, F:\Workspace\GitHub\BleProduceTestHelper\CSM3510_Helper.py, getpass
+missing module named grp - imported by shutil, tarfile, pathlib, F:\Workspace\GitHub\BleProduceTestHelper\CSM3510_Helper.py
+missing module named _dummy_threading - imported by dummy_threading, F:\Workspace\GitHub\BleProduceTestHelper\CSM3510_Helper.py
+missing module named pwd - imported by posixpath, shutil, tarfile, http.server, webbrowser, pathlib, F:\Workspace\GitHub\BleProduceTestHelper\CSM3510_Helper.py, netrc, getpass
+missing module named org - imported by copy, F:\Workspace\GitHub\BleProduceTestHelper\CSM3510_Helper.py
+missing module named fcntl - imported by serial.serialposix
+missing module named 'System.IO' - imported by serial.serialcli
+missing module named System - imported by serial.serialcli
+missing module named ImageDraw - imported by qrcode.image.pil
+missing module named Image - imported by qrcode.image.pil
+missing module named PIL._imagingagg - imported by PIL, PIL.ImageDraw
+missing module named StringIO - imported by six
+missing module named six.moves.xrange - imported by six.moves, qrcode.util
+runtime module named six.moves - imported by qrcode.util
+missing module named Tkinter - imported by PIL.ImageTk
+missing module named 'PySide.QtCore' - imported by PIL.ImageQt
+missing module named 'PyQt4.QtCore' - imported by PIL.ImageQt
+missing module named cffi - imported by PIL.Image, PIL.PyAccess, PIL.ImageTk
+missing module named __builtin__ - imported by PIL.Image

@@ -12,7 +12,7 @@ class GeneateQRCode(object):
             qr.add_data(str)
             qr.make(fit=True)
             img = qr.make_image()
-            img.save("mac.png")
+            img.save("./resource/mac.png")
             return img
 
 if __name__ == "__main__":
